@@ -110,6 +110,8 @@ class WebSocketController implements OnMessageInterface, OnCloseInterface
         $this->chatService->addCustomer($fd);
         $availableData = $this->chatService->findAvailableStaff();
         $this->logger->info('匹配结果:'. json_encode($availableData));
+
+        // selectedStaffFd 为null则说明无在线客服
         if ($availableData['selectedStaffFd'] === null) {
             $this->container->get(Sender::class)->push($fd, json_encode([
                 'action' => 'message',
@@ -121,6 +123,7 @@ class WebSocketController implements OnMessageInterface, OnCloseInterface
             return;
         }
 
+        // minQueue 不为null则说明需要排队
         if ($availableData['minQueue'] !== null) {
             $this->chatService->setCustomerQueueUp($fd, $availableData['selectedStaffFd']);
             $this->container->get(Sender::class)->push($fd, json_encode([
